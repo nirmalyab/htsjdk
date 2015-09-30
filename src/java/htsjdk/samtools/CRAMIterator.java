@@ -83,10 +83,10 @@ public class CRAMIterator implements SAMRecordIterator {
     public CRAMIterator(final InputStream inputStream, final ReferenceSource referenceSource)
             throws IOException {
         if (null == referenceSource) {
-            throw new CRAMException("A reference source is required for CRAM files");
-        }
+            this.referenceSource = new ReferenceSource();
+        } else
+            this.referenceSource = referenceSource;
         this.countingInputStream = new CountingInputStream(inputStream);
-        this.referenceSource = referenceSource;
         final CramContainerIterator containerIterator = new CramContainerIterator(this.countingInputStream);
         cramHeader = containerIterator.getCramHeader();
         this.containerIterator = containerIterator;
@@ -101,10 +101,10 @@ public class CRAMIterator implements SAMRecordIterator {
     public CRAMIterator(final SeekableStream seekableStream, final ReferenceSource referenceSource, final long[] coordinates)
             throws IOException {
         if (null == referenceSource) {
-            throw new CRAMException("A reference source is required for CRAM files");
-        }
+            this.referenceSource = new ReferenceSource();
+        } else
+            this.referenceSource = referenceSource;
         this.countingInputStream = new CountingInputStream(seekableStream);
-        this.referenceSource = referenceSource;
         final CramSpanContainerIterator containerIterator = CramSpanContainerIterator.fromFileSpan(seekableStream, coordinates);
         cramHeader = containerIterator.getCramHeader();
         this.containerIterator = containerIterator;
@@ -153,7 +153,7 @@ public class CRAMIterator implements SAMRecordIterator {
         else
             cramRecords.clear();
 
-        parser.getRecords(container, cramRecords);
+        parser.getRecords(container, cramRecords, validationStringency);
 
         if (container.sequenceId == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX) {
             refs = new byte[]{};
@@ -253,7 +253,12 @@ public class CRAMIterator implements SAMRecordIterator {
         if (!iterator.hasNext()) {
             try {
                 nextContainer();
-            } catch (final Exception e) {
+            } catch (CRAMException ce) {
+                throw ce;
+            }catch (SAMFormatException se) {
+                throw se;
+            }
+            catch (final Exception e) {
                 throw new RuntimeEOFException(e);
             }
         }
