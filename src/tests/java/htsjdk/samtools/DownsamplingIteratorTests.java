@@ -47,7 +47,7 @@ public class DownsamplingIteratorTests {
                 final String testcase = name + ": strategy=" + strategy.name() + ", p=" + p + ", accuracy=" + accuracy;
 
                 final double readFraction = iterator.getAcceptedFraction();
-                Assert.assertEquals(out.size(), iterator.getRecordsAccepted(), "Mismatched sizes with " + testcase);
+                Assert.assertEquals(out.size(), iterator.getAcceptedCount(), "Mismatched sizes with " + testcase);
                 Assert.assertTrue(readFraction > p - accuracy && readFraction < p + accuracy, "Read fraction " + readFraction + " out of bounds in " + testcase);
             }
         }

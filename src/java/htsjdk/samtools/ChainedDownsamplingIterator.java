@@ -44,7 +44,7 @@ class ChainedDownsamplingIterator extends HighAccuracyDownsamplingIterator {
         super(new ConstantMemoryDownsamplingIterator(iterator, Math.min(1, proportion + 0.01), seed), proportion, seed);
 
         // Deal with the fact that the iterator will advance and discard some reads at construction
-        final long discarded = ((ConstantMemoryDownsamplingIterator) getUnderlyingIterator()).getRecordsDiscarded();
+        final long discarded = ((ConstantMemoryDownsamplingIterator) getUnderlyingIterator()).getDiscardedCount();
         for (long i=0; i<discarded; ++i) recordDiscardedRecord(null);
     }
 
@@ -60,7 +60,6 @@ class ChainedDownsamplingIterator extends HighAccuracyDownsamplingIterator {
         super.readFromUnderlyingIterator(recs, names, templatesToRead);
     }
 
-
     @Override
     protected int calculateTemplatesToKeep(final int templatesRead, final double overallProportion) {
         // Calculate an adjusted proportion to keep, knowing what proportion the underlying iterator discarded
@@ -71,7 +70,7 @@ class ChainedDownsamplingIterator extends HighAccuracyDownsamplingIterator {
 
         // Record all the discarded records to keep the overall statistics accurate, but do it after
         // the call to super() so it doesn't affect the proportion calculation.
-        for (long i=0; i<iter.getRecordsDiscarded(); ++i) {
+        for (long i=0; i<iter.getDiscardedCount(); ++i) {
             recordDiscardedRecord(null);
         }
 

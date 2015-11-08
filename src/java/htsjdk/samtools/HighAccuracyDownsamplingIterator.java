@@ -40,7 +40,7 @@ import java.util.Set;
  *
  * @author Tim Fennell
  */
-public class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
+class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
     private final Iterator<SAMRecord> underlyingIterator;
     private final Random random;
     private SAMRecord nextRecord;
@@ -57,7 +57,7 @@ public class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
     }
 
     /** Constructs a downsampling iterator upon the supplied iterator, using the Random as the source of randomness. */
-    public HighAccuracyDownsamplingIterator(final Iterator<SAMRecord> iterator, final double proportion, final int seed) {
+    HighAccuracyDownsamplingIterator(final Iterator<SAMRecord> iterator, final double proportion, final int seed) {
         super(proportion);
         this.underlyingIterator = iterator;
         this.random = new Random(seed);
@@ -74,12 +74,6 @@ public class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
         this.targetAccuracy = accuracy;
         return this;
     }
-
-    /** Returns the total number of templates considered up to the point when the method is called. */
-    public long getTotalTemplates() { return totalTemplates; }
-
-    /** Returns the number of templates kept post-downsampling up to the point when the method is called. */
-    public long getKeptTemplates() { return keptTemplates; }
 
     /** Returns true if there is another record available post-downsampling, false otherwise. */
     @Override public boolean hasNext() {
@@ -162,7 +156,7 @@ public class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
         final int templatesToDiscard = templatesRead - templatesToKeep;
         final List<String> tmp    = new ArrayList<String>(names);
         Collections.shuffle(tmp, this.random);
-        for (int i=0; i<templatesToDiscard; ++i) names.remove(tmp.get(i));
+        for (int i = 0; i < templatesToDiscard; ++i) names.remove(tmp.get(i));
 
         // Set all the instance state so that advance()/next() get what they need
         this.bufferedRecordsToKeep = names;

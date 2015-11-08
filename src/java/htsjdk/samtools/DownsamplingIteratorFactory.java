@@ -108,7 +108,7 @@ public class DownsamplingIteratorFactory {
     }
 
     /**
-     * Convenience method that constructs a downsampling iterator for all the reads in a SAM file.
+     * Convenience method that constructs a downsampling iterator for all the reads available from a SamReader.
      * See {@link DownsamplingIteratorFactory#make(Iterator, Strategy, double, double, int)} for detailed parameter information.
      */
     public static DownsamplingIterator make(final SamReader reader, final Strategy strategy, final double proportion, final double accuracy, final int seed) {

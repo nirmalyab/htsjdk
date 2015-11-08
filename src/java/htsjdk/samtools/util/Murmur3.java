@@ -42,9 +42,9 @@ public final class Murmur3 {
         this.seed = seed;
     }
 
-    /** Foo */
+    /** Hashes a character stream to an int using Murmur3. */
     public int hashUnencodedChars(CharSequence input){
-        int h1 = seed;
+        int h1 = this.seed;
 
         // step through the CharSequence 2 chars at a time
         final int length = input.length();
@@ -67,7 +67,7 @@ public final class Murmur3 {
     private int hashInt(int input){
         if(input == 0) return 0;
         int k1 = mixK1(input);
-        int h1 = mixH1(seed, k1);
+        int h1 = mixH1(this.seed, k1);
 
         return fmix(h1, 4);
     }
@@ -78,7 +78,7 @@ public final class Murmur3 {
         int high = (int) (input >>> 32);
 
         int k1 = mixK1(low);
-        int h1 = mixH1(seed, k1);
+        int h1 = mixH1(this.seed, k1);
 
         k1 = mixK1(high);
         h1 = mixH1(h1, k1);
@@ -86,7 +86,7 @@ public final class Murmur3 {
         return fmix(h1, 8);
     }
 
-    private int mixK1(int k1){
+    private static int mixK1(int k1){
         final int c1 = 0xcc9e2d51;
         final int c2 = 0x1b873593;
         k1 *= c1;
@@ -95,7 +95,7 @@ public final class Murmur3 {
         return k1;
     }
 
-    private int mixH1(int h1, int k1){
+    private static int mixH1(int h1, int k1){
         h1 ^= k1;
         h1 = Integer.rotateLeft(h1, 13);
         h1 = h1 * 5 + 0xe6546b64;
@@ -103,7 +103,7 @@ public final class Murmur3 {
     }
 
     // Finalization mix - force all bits of a hash block to avalanche
-    private int fmix(int h1, int length){
+    private static int fmix(int h1, int length){
         h1 ^= length;
         h1 ^= h1 >>> 16;
         h1 *= 0x85ebca6b;

@@ -29,6 +29,11 @@ import htsjdk.samtools.util.CloseableIterator;
  * Abstract base class for all DownsamplingIterators that provides a uniform interface for recording
  * and reporting statistics bout how many records have been kept and discarded.
  *
+ * A DownsamplingIterator is an iterator that takes another iterator of SAMRecords and filters out a
+ * subset of those records in a random way, while ensuring that all records for a template (i.e. record name)
+ * are either retained or discarded.  Strictly speaking the proportion parameter applies to templates,
+ * though in most instances it is safe to think about it being applied to records.
+ *
  * @author Tim Fennell
  */
 public abstract class DownsamplingIterator implements CloseableIterator<SAMRecord> {
@@ -47,19 +52,19 @@ public abstract class DownsamplingIterator implements CloseableIterator<SAMRecor
     @Override public void close() { /** No Op. */ }
 
     /** Returns the number of records seen, including accepted and discarded, since creation of the last call to resetStatistics. */
-    public long getRecordsSeen() { return this.recordsSeen; }
+    public long getSeenCount() { return this.recordsSeen; }
 
     /** Returns the number of records returned since creation of the last call to resetStatistics. */
-    public long getRecordsAccepted() { return this.recordsAccepted; }
+    public long getAcceptedCount() { return this.recordsAccepted; }
 
     /** Returns the number of records discarded since creation of the last call to resetStatistics. */
-    public long getRecordsDiscarded() { return this.recordsSeen - this.recordsAccepted; }
+    public long getDiscardedCount() { return this.recordsSeen - this.recordsAccepted; }
 
     /** Gets the fraction of records discarded since creation or the last call to resetStatistics(). */
-    public double getDiscardedFraction() { return getRecordsDiscarded() / (double) getRecordsSeen(); }
+    public double getDiscardedFraction() { return getDiscardedCount() / (double) getSeenCount(); }
 
     /** Gets the fraction of records accepted since creation or the last call to resetStatistics(). */
-    public double getAcceptedFraction() { return getRecordsAccepted() / (double) getRecordsSeen(); }
+    public double getAcceptedFraction() { return getAcceptedCount() / (double) getSeenCount(); }
 
     /** Resets the statistics for records seen/accepted/discarded. */
     public void resetStatistics() {
