@@ -47,7 +47,7 @@ public class DownsamplingIteratorFactory {
             "to working in fixed memory this strategy is good for large inputs, and due to the stochastic nature the accuracy of this strategy " +
             "is highest with a high number of output records, and diminishes at low output volumes.";
 
-    public static final String CHAINED_DESCRPTION =
+    public static final String CHAINED_DESCRIPTION =
             "Attempts to provide a compromise strategy that offers some of the advantages of both the ConstantMemory and HighAccuracy strategies. " +
             "Uses a ConstantMemory strategy to downsample the incoming stream to approximately the desired proportion, and then a HighAccuracy " +
             "strategy to finish. Works in a single pass, and will provide accuracy close to (but often not as good as) HighAccuracy while requiring " +
@@ -58,7 +58,7 @@ public class DownsamplingIteratorFactory {
     public enum Strategy {
         HighAccuracy(HIGH_ACCURACY_DESCRIPTION),
         ConstantMemory(CONSTANT_MEMORY_DESCRPTION),
-        Chained(CHAINED_DESCRPTION);
+        Chained(CHAINED_DESCRIPTION);
 
         public final String description;
 

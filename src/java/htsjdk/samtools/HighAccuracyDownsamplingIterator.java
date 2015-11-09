@@ -111,17 +111,17 @@ class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
             final SAMRecord rec = this.bufferedRecords.next();
             final String key = rec.getReadName();
             final Boolean previous = decisions.get(key);
-            final boolean keeper;
+            final boolean keepThisRecord;
 
             if (previous == null) {
-                keeper = this.bufferedRecordsToKeep.contains(rec.getReadName());
-                decisions.put(key, keeper);
+                keepThisRecord = this.bufferedRecordsToKeep.contains(rec.getReadName());
+                decisions.put(key, keepThisRecord);
             }
             else {
-                keeper = previous;
+                keepThisRecord = previous;
             }
 
-            if (keeper) {
+            if (keepThisRecord) {
                 this.nextRecord = rec;
                 recordAcceptedRecord(rec);
             }
@@ -134,8 +134,8 @@ class HighAccuracyDownsamplingIterator extends DownsamplingIterator {
     }
 
     /**
-     * Buffers reads until either the end of the file is reached or enough reads have been buffered that
-     * downsampling can be performed and the target accuracy achieved.  Once reads have been buffered,
+     * Buffers reads until either the end of the file is reached or enough reads have been buffered such
+     * that downsampling can be performed to the desired target accuracy.  Once reads have been buffered,
      * template names are randomly sampled out for discarding until the desired number of reads have
      * been discarded.
      *

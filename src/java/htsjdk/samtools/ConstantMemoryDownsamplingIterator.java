@@ -36,7 +36,7 @@ import java.util.Iterator;
  * are emitted, records whose hash value is above the limit are discarded.
  *
  * Does not make any attempt to be accurate (have actual proportion == requested proportion) beyond what would
- * be expected for a random process and so may become quite in accurate when downsampling to small numbers of
+ * be expected for a random process and so may become quite inaccurate when downsampling to small numbers of
  * reads.
  *
  * @author Tim Fennell
