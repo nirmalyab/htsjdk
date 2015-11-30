@@ -1,14 +1,18 @@
 package nirmalya;
 
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
 import htsjdk.samtools.util.BlockCompressedInputStream;
+
+//import nirmalya.RandomSamplingUtils;;
 
 /**
  * This class creates an indexes for the starting and ending positions of the alignments
@@ -27,8 +31,10 @@ public class IndexBuilder {
 	private int n_ref = 0;
 	private String bamFile = null;
 	private String outFile = null;
+	// size of integer in bytes
+	private final int IntSize = 4;
 
-	HashMap<String, Long> posMap = new HashMap<String, Long>();
+	HashMap<String, Pos> posMap = new HashMap<String, Pos>();
 
 	public IndexBuilder(String inFile, String outFile) throws IOException {
 		this.bamFile = inFile;
@@ -41,16 +47,16 @@ public class IndexBuilder {
 		// Check if the BAM\1 magic string is there.
 		String magic = null;
 
-		magic = readStr(bcis, 4);
+		magic = RandomSamplingUtils.readStr(bcis, 4);
 		String magicStr = "BAM\\1";
 		if (magic.equals(magicStr)) {
 			String err = "Illegal bam file magic  string: " + magic;
 			throw new RuntimeException(err);
 		}
 
-		l_text = readInt32(bcis);
-		text = readStr(bcis, l_text);
-		n_ref = readInt32(bcis);
+		l_text = RandomSamplingUtils.readInt32(bcis);
+		text = RandomSamplingUtils.readStr(bcis, l_text);
+		n_ref = RandomSamplingUtils.readInt32(bcis);
 
 		/*
 		 * System.out.println(l_text); System.out.println(text);
@@ -66,9 +72,9 @@ public class IndexBuilder {
 		}
 
 		for (int j = 0; j < n_ref; j++) {
-			int l_name = readInt32(bcis);
-			String name = readStr(bcis, l_name);
-			int l_ref = readInt32(bcis);
+			int l_name = RandomSamplingUtils.readInt32(bcis);
+			String name = RandomSamplingUtils.readStr(bcis, l_name);
+			int l_ref = RandomSamplingUtils.readInt32(bcis);
 
 			/*
 			 * System.out.println(l_name); System.out.println(name);
@@ -80,7 +86,12 @@ public class IndexBuilder {
 	void processAlignments() throws IOException {
 		byte[] tempBuf = new byte[MAXLEN];
 
-		PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
+		//PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
+		
+		// Do the writing using binary format in the pair: firstPos, secondPos each in long 
+		// For this purpose use Java's default endianness.
+		
+		DataOutputStream outS = new DataOutputStream(new FileOutputStream(outFile));
 
 		while (true) {
 
@@ -89,7 +100,8 @@ public class IndexBuilder {
 
 			int block_size = 0;
 			try {
-				block_size = readInt32(bcis);
+				block_size = RandomSamplingUtils.readInt32(bcis);
+				int totalBlockSize = IntSize + block_size;
 
 				bcis.read(tempBuf, 0, block_size);
 
@@ -103,18 +115,22 @@ public class IndexBuilder {
 				String read_name = new String(tempBuf, startPos, count);
 
 				if (posMap.containsKey(read_name)) {
-					long firstPos = posMap.get(read_name);
-					writer.println(read_name + " " + firstPos + " " + lPos);
+					Pos firstPosObj = posMap.get(read_name);					
+					
+					//writer.println(firstPosObj.pos + " " + firstPosObj.size + " " + lPos + " " + totalBlockSize);
+					outS.writeLong(firstPosObj.pos);
+					outS.writeLong(lPos);
 					posMap.remove(read_name);
 				} else {
-					posMap.put(read_name, lPos);
+					Pos pObj = new Pos(lPos, totalBlockSize);
+					posMap.put(read_name, pObj);
 				}
 
 			} catch (EOFException e) {
 				//System.out.println("BlockSize: " + (block_size + 4) + " mapSize: " + posMap.size() + " Position: "
 				//		+ BlockCompressedFilePointerUtil.getBlockAddress(lPos) + " Pos2: "
 				//		+ BlockCompressedFilePointerUtil.getBlockOffset(lPos));
-				writer.close();
+				outS.close();
 				break;
 			}
 		}
@@ -130,35 +146,14 @@ public class IndexBuilder {
 		obj.processAlignments();	
 
 	}
+}
 
-	private String readStr(BlockCompressedInputStream bcis, int length) throws IOException {
-		byte[] buffer = new byte[length];
-		if (-1 == bcis.read(buffer)) {
-			String err = "Reached end of stream!";
-			throw new EOFException(err);
-		}
-		
-		String lStr = new String(buffer);
-		buffer = null;
-		return lStr;
-	}
-
-	private int readInt32(BlockCompressedInputStream bcis) throws IOException {
-
-		byte[] buffer = new byte[4];
-		if (-1 == bcis.read(buffer)) {
-			String err = "Reached end of stream!";
-			throw new EOFException(err);
-		}
-		
-		int lVal = unpackInt32(buffer, 0);
-		buffer = null;
-		return lVal;
-
-	}
-
-	private int unpackInt32(final byte[] buffer, final int offset) {
-		return ((buffer[offset] & 0xFF) | ((buffer[offset + 1] & 0xFF) << 8) | ((buffer[offset + 2] & 0xFF) << 16)
-				| ((buffer[offset + 3] & 0xFF) << 24));
-	}
+class Pos {
+	long pos;
+	int size;
+	
+	public Pos (long pos, int size) {
+		this.pos = pos;
+		this.size = size;
+	}	
 }
